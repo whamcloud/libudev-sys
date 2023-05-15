@@ -25,23 +25,29 @@ fn check_func(function_name: &str) -> bool {
         writeln!(&mut test_file, "}}").unwrap();
     }
 
-    let output = Command::new("rustc").
-        arg(&test_file_name).
-        arg("--out-dir").arg(&out_dir).
-        arg("-l").arg("udev").
-        output().unwrap();
+    let output = Command::new("rustc")
+        .arg(&test_file_name)
+        .arg("--out-dir")
+        .arg(&out_dir)
+        .arg("-l")
+        .arg("udev")
+        .output()
+        .unwrap();
 
     output.status.success()
 }
 
 fn main() {
+    if std::env::var("CARGO_CFG_TARGET_OS") == Ok("macos".to_string()) {
+        return;
+    }
+
     pkg_config::find_library("libudev").unwrap();
 
     if check_func("udev_hwdb_new") {
         println!("cargo:rustc-cfg=hwdb");
         println!("cargo:hwdb=true");
-    }
-    else {
+    } else {
         println!("cargo:hwdb=false");
     }
 }
